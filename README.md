@@ -13,3 +13,10 @@ optional arguments:
   --region [REGION]
   --profile [PROFILE]
 ```
+
+#### Usage
+
+```bash
+# generate cloudformation dynamodb tables from sa-east-1 with on demand provisioned of my_profile
+python dynamodb_to_cf.py --region sa-east-1 --profile my_profile --on-demand
+```

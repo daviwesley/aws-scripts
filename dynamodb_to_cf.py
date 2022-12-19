@@ -5,9 +5,27 @@ import yaml
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--on-demand", action="store_true", help="Use on-demand billing mode for the tables")
-parser.add_argument('--region', nargs='?', const=1, type=str, default="us-east-1")
-parser.add_argument('--profile', nargs='?', const=1, type=str, default="default")
+parser.add_argument(
+    "--on-demand",
+    action="store_true",
+    help="Use on-demand billing mode for the tables",
+)
+parser.add_argument(
+    "--region",
+    nargs="?",
+    const=1,
+    type=str,
+    default="us-east-1",
+    help="AWS region to use (default: us-east-1)",
+)
+parser.add_argument(
+    "--profile",
+    nargs="?",
+    const=1,
+    type=str,
+    default="default",
+    help="AWS profile to use (default: default)",
+)
 
 args = parser.parse_args()
 
@@ -18,13 +36,11 @@ tables = dynamodb.list_tables()["TableNames"]
 
 
 def sanitize_name(name):
-    splited = re.split('[\-\_\.]+', name)
-    # import pdb; pdb.set_trace()
+    splited = re.split(r"[\-\_\.]+", name)
     capitalized = "".join(i.capitalize() for i in splited)
     sanitezed_name = re.sub(r"[^a-zA-Z0-9]", "", capitalized)
 
     return sanitezed_name
-
 
 
 resources = {}
@@ -34,10 +50,16 @@ for table_name in tables:
     properties = {
         "TableName": table_name,
         "AttributeDefinitions": [
-            {"AttributeName": attr["AttributeName"], "AttributeType": attr["AttributeType"]}
+            {
+                "AttributeName": attr["AttributeName"],
+                "AttributeType": attr["AttributeType"],
+            }
             for attr in table["AttributeDefinitions"]
         ],
-        "KeySchema": [{"AttributeName": key["AttributeName"], "KeyType": key["KeyType"]} for key in table["KeySchema"]],
+        "KeySchema": [
+            {"AttributeName": key["AttributeName"], "KeyType": key["KeyType"]}
+            for key in table["KeySchema"]
+        ],
     }
     if args.on_demand:
         properties["BillingMode"] = "PAY_PER_REQUEST"
@@ -54,12 +76,22 @@ for table_name in tables:
                 {
                     "IndexName": index["IndexName"],
                     "KeySchema": [
-                        {"AttributeName": key["AttributeName"], "KeyType": key["KeyType"]} for key in index["KeySchema"]
+                        {
+                            "AttributeName": key["AttributeName"],
+                            "KeyType": key["KeyType"],
+                        }
+                        for key in index["KeySchema"]
                     ],
-                    "Projection": {"ProjectionType": index["Projection"]["ProjectionType"]},
+                    "Projection": {
+                        "ProjectionType": index["Projection"]["ProjectionType"]
+                    },
                     "ProvisionedThroughput": {
-                        "ReadCapacityUnits": index["ProvisionedThroughput"]["ReadCapacityUnits"],
-                        "WriteCapacityUnits": index["ProvisionedThroughput"]["WriteCapacityUnits"],
+                        "ReadCapacityUnits": index["ProvisionedThroughput"][
+                            "ReadCapacityUnits"
+                        ],
+                        "WriteCapacityUnits": index["ProvisionedThroughput"][
+                            "WriteCapacityUnits"
+                        ],
                     },
                 }
             )
